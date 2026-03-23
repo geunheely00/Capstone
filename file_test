@@ -1,0 +1,47 @@
+import os
+import numpy as np
+import librosa
+import tensorflow as tf
+
+# 모델 불러오기
+model = tf.keras.models.load_model("model/gunshot_model.keras")
+print("모델 로딩 완료!\n")
+
+SR = 22050
+N_MELS = 64
+MAX_LEN = 128
+
+def audio_to_mel(file_path):
+    y, _ = librosa.load(file_path, sr=SR, duration=5.0)
+    mel = librosa.feature.melspectrogram(y=y, sr=SR, n_mels=N_MELS)
+    mel_db = librosa.power_to_db(mel, ref=np.max)
+
+    if mel_db.shape[1] < MAX_LEN:
+        pad = MAX_LEN - mel_db.shape[1]
+        mel_db = np.pad(mel_db, ((0, 0), (0, pad)), mode='constant')
+    else:
+        mel_db = mel_db[:, :MAX_LEN]
+
+    return mel_db
+
+# 임펄스 소리 5개 테스트
+print("=== 임펄스 소리 테스트 ===")
+impulse_files = os.listdir("data/impulse")[:5]
+for f in impulse_files:
+    mel = audio_to_mel(os.path.join("data/impulse", f))
+    mel_input = mel[np.newaxis, ..., np.newaxis]
+    pred = model.predict(mel_input, verbose=0)[0][0]
+    result = "O 임펄스" if pred >= 0.5 else "X 일반"
+    print(f"  {f} -> {result} ({pred*100:.1f}%)")
+
+# 비임펄스 소리 5개 테스트
+print("\n=== 비임펄스 소리 테스트 ===")
+not_impulse_files = os.listdir("data/not_impulse")[:5]
+for f in not_impulse_files:
+    mel = audio_to_mel(os.path.join("data/not_impulse", f))
+    mel_input = mel[np.newaxis, ..., np.newaxis]
+    pred = model.predict(mel_input, verbose=0)[0][0]
+    result = "O 임펄스" if pred >= 0.5 else "X 일반"
+    print(f"  {f} -> {result} ({pred*100:.1f}%)")
+
+print("\n테스트 완료!")
