@@ -8,7 +8,7 @@ model = tf.keras.models.load_model("model/gunshot_model_v3.keras")
 print("모델 로딩 완료! (v3 다중분류)")
 
 SR = 22050
-DURATION = 2.0
+DURATION = 0.7
 N_MELS = 64
 MAX_LEN = 128
 
