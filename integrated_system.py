@@ -8,7 +8,7 @@ import time
 # 설정
 # =====================
 SR = 22050
-DURATION = 2.0
+DURATION = 0.7
 N_MELS = 64
 MAX_LEN = 128
 SOUND_SPEED = 343.0  # 음속 (m/s)
